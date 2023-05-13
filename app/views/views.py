@@ -13,9 +13,15 @@ from django.core.cache import cache
 from app.form import UserForm
 from django.core.validators import EmailValidator, ValidationError
 from app.middleware import check_is_login
-
+import openai
+import json
    
 
+
+@csrf_exempt
+def test(request):
+    print("hello")
+    return HttpResponse("hello world")
 
 @csrf_exempt
 @check_is_login
@@ -41,14 +47,38 @@ def search(request):
         return HttpResponse("")
 
     
+    
     data = Data(json.loads(request.body))
+    # print("有人来请求了")
+    # print(json.loads(request.body))
     
     searchText = data["searchText"]
     searchType = data["searchType"]
 
+
+
    
     if searchType == Code.SPECIAL_SEARCH:
-        result = ""
+        # response = openai.Completion.create(
+        #     engine="text-davinci-003",
+        #     prompt=searchText,
+        #     max_tokens=1024,
+        # )
+        # result = response["choices"][0]["text"]
+        # logging.info(result)
+        # return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":result})
+
+        messages=[{"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": f"{searchText}"}]
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=messages,
+            max_tokens=1024,
+        )
+        result = response["choices"][0]["message"]["content"]
+        logging.info(result)
+        return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":result})
+        
         
     else:
          result = searchText

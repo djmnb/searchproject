@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'app.apps.AppConfig',
 ]
 
@@ -48,17 +49,15 @@ CACHES = {
 }
 
 MIDDLEWARE = [
-    
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'app.middleware.ExcptionMiddleware',
+    'django.middleware.common.CommonMiddleware', 
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
-    
+    'app.middleware.ExcptionMiddleware',
 ]
 
 ROOT_URLCONF = 'searchproject.urls'
@@ -79,6 +78,10 @@ TEMPLATES = [
         },
     },
 ]
+
+
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 WSGI_APPLICATION = 'searchproject.wsgi.application'
 

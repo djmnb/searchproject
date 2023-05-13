@@ -32,6 +32,6 @@ class Question(models.Model):
 
 class SearchHistory(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,verbose_name="用户",default=1)
-    search_text = models.TextField(verbose_name="搜索内容")
+    title = models.TextField(verbose_name="搜索内容")
     create_time = models.DateTimeField(auto_now_add=True,verbose_name="创建时间")
     

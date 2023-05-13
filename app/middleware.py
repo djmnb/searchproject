@@ -9,6 +9,8 @@ from django.core.exceptions import SuspiciousFileOperation,RequestDataTooBig,Val
 from app.models import User,Question
 from app.utils import ParamError
 from django.core.paginator import EmptyPage
+from django.http import Http404
+
 
 
 
@@ -30,42 +32,38 @@ class ExcptionMiddleware:
             match = resolve(request.path)
         except Exception as e:
             return JsonResponse({"code": Code.NOT_FOUND, "info": "请求不存在"})
-
+        
         return self.get_response(request)
+        
 
-    def process_view(self,request,view_func,view_args,view_kwargs):
-        try:
-            return view_func(request,*view_args,**view_kwargs)
-        except User.DoesNotExist as e:
-            return JsonResponse({"code": Code.USER_NOTFOUND, "info": "用户不存在","error":str(e)})
 
-        except (SuspiciousFileOperation,RequestDataTooBig) as e:
-            return JsonResponse({"code": Code.FILE_LAGER_THAN_5M, "info": "文件超过5M","error":str(e)})
-
-        except (SMTPRecipientsRefused) as e :
-            return JsonResponse({"code": Code.EMAIL_NOT_VALID, "info": "验证码发送失败,请检查邮箱是否正确","error":str(e)})
-        
-        except ValidationError as e:
-            return JsonResponse({"code": Code.EMAIL_NOT_VALID, "info": "邮箱不合法","error":str(e)})
-        
-        except Question.DoesNotExist as e:
-            
-            return JsonResponse({"code": Code.QUESTION_NOT_FOUND, "info": "题目不存在","error":str(e)})
-        
-        except JSONDecodeError as e:
-            return JsonResponse({"code": Code.DATA_FORMAT_ERROR, "info": "数据格式错误","error":str(e)})
-
-        except ParamError as e:
-            logging.exception(e)
-            return JsonResponse({"code": Code.PARAM_ERROR, "info": "参数错误","error":str(e)})
-        
-        except EmptyPage as e:
-            return JsonResponse({"code": Code.PAGE_NOT_FOUND, "info": "页码不存在","error":str(e)})
-        except Exception as e:
-            logging.debug(type(e))
-            logging.exception(e)
-            return JsonResponse({"code": Code.SERVER_ERROR, "info": "服务器错误","error":str(e)})
-        
+    def process_exception(self, request, exception):
+        print(exception)
+        return self.exception_handler(exception)
     
+
+
+    def exception_handler(self,exception):
+        if isinstance(exception,SuspiciousFileOperation) or isinstance(exception,RequestDataTooBig):
+            return JsonResponse({"code": Code.FILE_LAGER_THAN_5M, "info": "文件超过5M"})
+        elif isinstance(exception,User.DoesNotExist):
+            return JsonResponse({"code": Code.USER_NOTFOUND, "info": "用户不存在"})
+        elif isinstance(exception,SMTPRecipientsRefused):
+            return JsonResponse({"code": Code.EMAIL_NOT_VALID, "info": "验证码发送失败,请检查邮箱是否正确"})
+        elif isinstance(exception,ValidationError):
+            return JsonResponse({"code": Code.EMAIL_NOT_VALID, "info": "邮箱不合法"})
+        elif isinstance(exception,Question.DoesNotExist):
+            return JsonResponse({"code": Code.QUESTION_NOT_FOUND, "info": "题目不存在"})
+        elif isinstance(exception,JSONDecodeError):
+            return JsonResponse({"code": Code.DATA_FORMAT_ERROR, "info": "数据格式错误"})
+        elif isinstance(exception,ParamError):
+            return JsonResponse({"code": Code.PARAM_ERROR, "info": "参数错误"})
+        elif isinstance(exception,EmptyPage):
+            return JsonResponse({"code": Code.PAGE_NOT_FOUND, "info": "页码不存在"})
+        elif isinstance(exception,Http404):
+            return JsonResponse({"code": Code.NOT_FOUND, "info": "请求不存在"})
+        else:
+            return JsonResponse({"code": Code.SERVER_ERROR, "info": f"服务器错误{exception}"})
+        
 
     

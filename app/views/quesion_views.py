@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from app.utils import Data,questionSearchSystem
 from django.core.paginator import Paginator
+from django.core import serializers
 
 
 
@@ -55,6 +56,8 @@ def getquestion(request):
     
 
     
+
+    
     return JsonResponse({"code": Code.IS_OK, "info": "获取成功", "data": result,"total":total,"getType":getType})
 
 @check_is_login
@@ -86,6 +89,8 @@ def deletequestion(request):
     Question.objects.filter(id=id).delete()
     return JsonResponse({"code": Code.IS_OK, "info": "删除成功"})
 
+@check_is_login
+@csrf_exempt
 def getsearchhistory(request):
     if request.method == 'GET':
         return HttpResponse("")
@@ -108,9 +113,10 @@ def getsearchhistory(request):
     for h in histories:
         result.append({
                 "id": h.id,
-                "searchText": h.search_text,
+                "title": h.title,
                 "createTime": h.create_time.strftime("%Y-%m-%d %H:%M:%S")
         })
+
 
     return JsonResponse({"code": Code.IS_OK, "info": "获取成功", "data": result,"total":total})
     

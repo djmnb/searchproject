@@ -41,7 +41,7 @@ def tokenize_question(question):
 def load_questions_from_database():
     return Question.objects.all()
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')    
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')    
 
 class QuestionSearchSystem:
     def __init__(self,flag=True,matrix_path='tfidf_matrix.pickle', ids_path='ids.pickle', vectorizer_path='vectorizer.pickle'):
@@ -132,7 +132,8 @@ class QuestionSearchSystem:
         return list(zip(top_n_ids, top_n_similarities))
 
 
-questionSearchSystem = QuestionSearchSystem(False)
+# questionSearchSystem = QuestionSearchSystem(False)
+questionSearchSystem = None
 
 
 class ParamError(Exception):
