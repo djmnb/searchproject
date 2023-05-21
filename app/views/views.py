@@ -8,14 +8,19 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from app.models import User,Question,SearchHistory
 import app.code as Code
-from app.utils import Data, send_verification_code,generate_email_verification_code, pic_to_text,questionSearchSystem
+from app.utils import Data, send_verification_code,generate_email_verification_code, pic_to_text,questionElasticsearch
 from django.core.cache import cache
 from app.form import UserForm
 from django.core.validators import EmailValidator, ValidationError
 from app.middleware import check_is_login
 import openai
 import json
-   
+
+
+
+
+
+openai.api_key = 
 
 
 @csrf_exempt
@@ -38,7 +43,34 @@ def uploadpic(request):
     return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":text})
 
 
-ans = 1
+# 在线问答功能
+@csrf_exempt
+@check_is_login
+def chat(request):
+
+    user = User.objects.get(email=request.session.get("email"))
+    data = Data(json.loads(request.body))
+
+    if user.tokens <= 0:
+        return JsonResponse({"code": Code.NOT_ENOUGH,"info":"token数量不足,请联系管理员充值"})
+    modelType = data["modelType"]
+    messages = data["messages"]
+
+    logging.info(modelType)
+    logging.info(messages)
+
+    response = openai.ChatCompletion.create(
+        model=modelType,
+        messages=messages,
+        max_tokens=2048,
+    )
+    result = response["choices"][0]["message"]
+    usage = response["usage"]
+    user.tokens -= usage["total_tokens"]
+    user.save()
+
+    logging.info(result)
+    return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":{"result":result,"totalTokens":usage["total_tokens"],"allTokens":user.tokens}})
 
 @csrf_exempt
 @check_is_login
@@ -46,58 +78,13 @@ def search(request):
     if request.method != 'POST':
         return HttpResponse("")
 
-    
-    
     data = Data(json.loads(request.body))
-    # print("有人来请求了")
-    # print(json.loads(request.body))
-    
     searchText = data["searchText"]
-    searchType = data["searchType"]
-
-
-
-   
-    if searchType == Code.SPECIAL_SEARCH:
-        # response = openai.Completion.create(
-        #     engine="text-davinci-003",
-        #     prompt=searchText,
-        #     max_tokens=1024,
-        # )
-        # result = response["choices"][0]["text"]
-        # logging.info(result)
-        # return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":result})
-
-        messages=[{"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": f"{searchText}"}]
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=messages,
-            max_tokens=1024,
-        )
-        result = response["choices"][0]["message"]["content"]
-        logging.info(result)
-        return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":result})
-        
-        
-    else:
-         result = searchText
-
-    top_n = questionSearchSystem.find_similar_question_ids(searchText,10)
-
-    ids = [id for id,score in top_n]
-    s = [score for id,score in top_n]
-    logging.debug(s)
-
-    # result = list(map(lambda id:Question.objects.get(id=id),ids))
-    # result = list(map(lambda question:question.to_dict(),result))
-    result = []
-    for id in ids:
-        question = Question.objects.get(id=id)
-        result.append({"id":id,"title":question.title,"content":question.content})
+    questionNums = data["questionNums"]
+    result = questionElasticsearch.search_questions(searchText,questionNums)
     
+    SearchHistory.objects.create(user=User.objects.get(email=request.session["email"]),title=searchText)
 
-    SearchHistory.objects.create(user=User.objects.get(email=request.session["email"]),search_text=searchText)
     
 
     return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":result})

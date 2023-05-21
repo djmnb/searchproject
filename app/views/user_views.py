@@ -26,12 +26,16 @@ def login(request):
     if request.method != 'POST':
        return HttpResponse("")
     
+
+    
     data = Data(json.loads(request.body))
     user = User.objects.get(email=data["email"])
+
 
     
     logging.debug(user.login_time)
     if user.status == Code.USER_BAN:
+
         return JsonResponse({"code": Code.USER_BAN, "info": "用户已被封禁"})
     
     
@@ -40,8 +44,10 @@ def login(request):
     
     request.session["email"] = data["email"]
 
-
-    user.login_ip = request.META.get("REMOTE_ADDR")
+    ip = request.META.get("HTTP_X_FORWARDED_FOR")
+    if not ip:
+        ip = request.META.get("REMOTE_ADDR") 
+    user.login_ip = ip
     user.save()
     return JsonResponse({"code": Code.IS_OK, "info": "登录成功"})
 
@@ -73,20 +79,9 @@ def getUserInfo(request):
             "loginTime":user.login_time,
             "loginIp":user.login_ip,
             "status":user.status,
-            "onlineCount":user.online_count,
+            "tokens":user.tokens,
             "uploadCount":user.upload_count,
             "isAdmin":user.is_admin
-            },
-            "data1":{
-                "email":{"data":user.email,"editable":getUserFiled("email")},
-                "username":{"data":user.username,"editable":getUserFiled("username")},
-                "createTime":{"data":user.create_time,"editable":getUserFiled("create_time")},
-                "loginTime":{"data":user.login_time,"editable":getUserFiled("login_time")},
-                "loginIp":{"data":user.login_ip,"editable":getUserFiled("login_ip")},
-                "status":{"data":user.status,"editable":getUserFiled("status")},
-                "onlineCount":{"data":user.online_count,"editable":getUserFiled("online_count")},
-                "uploadCount":{"data":user.upload_count,"editable":getUserFiled("upload_count")},
-                "isAdmin":{"data":user.is_admin,"editable":getUserFiled("is_admin")}
             }
         })
 
@@ -130,8 +125,7 @@ def register(request):
         return HttpResponse("")
 
     data = Data(json.loads(request.body))
-    email = data["email"]
-           
+    email = data["email"]   
     password = data["password"]
     confirmPassword = data["confirmPassword"]
 
@@ -154,11 +148,31 @@ def changepassword(request):
     if request.method != 'POST':
         return HttpResponse("")
 
-    data = Data(json.loads(request.body))
+    data = Data(json.loads(request.body)) 
     email = data["email"]
-    user = User.objects.get(email=email)
+    password = data["password"]
+    confirmPassword = data["confirmPassword"]
+    if password != confirmPassword:
+        return JsonResponse({"code": Code.PASSWORD_NOT_MATCH,"info":"两次密码不一致"})
+    
+    user = User.objects.get(email=email) 
+    
+    try:
+        oldPassword = data["oldPassword"]
+        if not check_password(oldPassword, user.password):
+            return JsonResponse({"code": Code.PASSWORD_ERROR, "info": "密码错误"})
+        else:
+            user.password = make_password(password)
+            user.save()
+            request.session.flush()
+            return JsonResponse({"code": Code.IS_OK,"info":"修改成功,请重新登录"})
+    except Exception as e:
+        pass
+    
 
-    verificationCode = cache.get(email + f"{Code.CODE_FORGET_PASSWORD}")
+    
+
+    verificationCode = cache.get(email + f"{Code.CODE_FORGET_PASSWORD}")  
     if verificationCode == data["verificationCode"]:
         user.password = make_password(data["password"])
         user.save()

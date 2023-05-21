@@ -32,10 +32,14 @@ userUrlPatterns = [
 questionUrlPatterns = [
     path('getquestion/', quesion_views.getquestion),
     path('uploadquestion/', quesion_views.uploadquestion),
-    path('gethistory/',quesion_views.getsearchhistory)
+    path('gethistory/',quesion_views.getsearchhistory),
+    path('deletequestion/',quesion_views.deletequestion),
+    path('changequestion/',quesion_views.changequestion),
+    path('deletehistory/',quesion_views.deletehistory),
 ]
 
 
+# 这里设置url路径
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -43,6 +47,7 @@ urlpatterns = [
     path('question/',include(questionUrlPatterns)),
     path('search/', views.search),
     path('uploadpic/', views.uploadpic),
+    path('chat/', views.chat),
     path("test/",views.test)
 ]
 

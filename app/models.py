@@ -12,7 +12,7 @@ class User(models.Model):
     create_time = models.DateTimeField(auto_now_add=True,verbose_name="创建时间",editable=False)
     login_time = models.DateTimeField(auto_now=True,verbose_name="登录时间",editable=False)
     login_ip = models.GenericIPAddressField(verbose_name="登录ip",editable=False)  
-    online_count = models.IntegerField(verbose_name="剩余在线问答次数",default=10,editable=False)
+    tokens = models.IntegerField(verbose_name="剩余token数量",default=10,editable=False)
     upload_count = models.IntegerField(verbose_name="上传题目数量",default=0,editable=False)
     is_admin = models.BooleanField(verbose_name="是否是管理员",default=False,editable=False)
     status = models.IntegerField(verbose_name="账号状态",default=0,editable=False)  # 账号当前状态,0为正常,1为被封禁
@@ -34,4 +34,6 @@ class SearchHistory(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,verbose_name="用户",default=1)
     title = models.TextField(verbose_name="搜索内容")
     create_time = models.DateTimeField(auto_now_add=True,verbose_name="创建时间")
+
+
     

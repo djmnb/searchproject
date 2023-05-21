@@ -9,7 +9,7 @@ from app.middleware import check_is_login
 from app.models import Question, User,SearchHistory
 from django.views.decorators.csrf import csrf_exempt
 
-from app.utils import Data,questionSearchSystem
+from app.utils import Data, questionElasticsearch
 from django.core.paginator import Paginator
 from django.core import serializers
 
@@ -48,14 +48,13 @@ def getquestion(request):
         result.append({
                 "title": q.title,
                 "id": q.id,
-                "answer": q.content,
+                "content": q.content,
                 "createTime": q.create_time.strftime("%Y-%m-%d %H:%M:%S"),
                 "updateTime": q.update_time.strftime("%Y-%m-%d %H:%M:%S"),
                 "user": q.user.username
         })
     
 
-    
 
     
     return JsonResponse({"code": Code.IS_OK, "info": "获取成功", "data": result,"total":total,"getType":getType})
@@ -74,8 +73,7 @@ def uploadquestion(request):
     content = data["content"]
     question = Question.objects.create(title=title,content=content,user=user)
     
-    questionSearchSystem.train_new_question(question)
-    # questionSearchSystem.train_new_question(question)
+    questionElasticsearch.add_question(question)
     return JsonResponse({"code": Code.IS_OK, "info": "上传成功"})
 
 @check_is_login
@@ -86,7 +84,43 @@ def deletequestion(request):
     
     data = Data(json.loads(request.body))
     id = data["id"]
-    Question.objects.filter(id=id).delete()
+
+    question = Question.objects.get(id=id)
+    questionElasticsearch.delete_question(id)
+    question.delete()
+    return JsonResponse({"code": Code.IS_OK, "info": "删除成功"})
+
+
+@check_is_login
+@csrf_exempt
+def changequestion(request):
+    if request.method == 'GET':
+        return HttpResponse("")
+    
+    
+    print(request.body)
+    data = Data(json.loads(request.body))
+    id = data["id"]
+    title = data["title"]
+    content = data["content"]
+
+    question = Question.objects.get(id=id)
+    question.title = title
+    question.content = content
+    question.save()
+    questionElasticsearch.update_question(question)
+    return JsonResponse({"code": Code.IS_OK, "info": "修改成功"})
+
+@check_is_login
+@csrf_exempt
+def deletehistory(request):
+    if request.method == 'GET':
+        return HttpResponse("")
+    
+    
+    data = Data(json.loads(request.body))
+    id = data["id"]
+    SearchHistory.objects.get(id=id).delete()
     return JsonResponse({"code": Code.IS_OK, "info": "删除成功"})
 
 @check_is_login
@@ -99,7 +133,7 @@ def getsearchhistory(request):
     email = request.session["email"]
     data = Data(json.loads(request.body))
 
-    searchHistory = SearchHistory.objects.filter(user__email=email)
+    searchHistory = SearchHistory.objects.filter(user__email=email).order_by("-create_time")
 
     total = searchHistory.count()
     
