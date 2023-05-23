@@ -74,7 +74,6 @@ def getUserInfo(request):
          "info":"获取成功",
          "data":{
             "email":user.email,
-            "username":user.username,
             "createTime":user.create_time,
             "loginTime":user.login_time,
             "loginIp":user.login_ip,

@@ -1,0 +1,5 @@
+Django==4.0.4
+requests==2.26.0
+elasticsearch==7.17.9
+openai==0.27.2
+django-cors-headers==3.14.0

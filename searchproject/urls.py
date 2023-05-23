@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from app import views
 from app.views import quesion_views, user_views,views
-import csv
+
 
 
 userUrlPatterns = [

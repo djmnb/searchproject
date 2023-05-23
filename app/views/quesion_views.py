@@ -51,7 +51,6 @@ def getquestion(request):
                 "content": q.content,
                 "createTime": q.create_time.strftime("%Y-%m-%d %H:%M:%S"),
                 "updateTime": q.update_time.strftime("%Y-%m-%d %H:%M:%S"),
-                "user": q.user.username
         })
     
 
