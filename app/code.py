@@ -8,8 +8,8 @@
 # 5xx 为系统错误
 
 
-USER_NORMAL = 0                     #账号正常
-USER_BAN = 1                        #账号被封禁
+USER_NORMAL = True                    #账号正常
+USER_BAN = False                      #账号被封禁
 
 ALL_QUESTION = "ALL_QUESTION"       #所有问题
 MY_QUESTION = "MY_QUESTION"         #我的问题

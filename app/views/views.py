@@ -19,7 +19,7 @@ import json
 
 
 
-
+# 添加自己的api_key
 openai.api_key = 
 
 
@@ -40,7 +40,7 @@ def uploadpic(request):
 
     if code != Code.IS_OK:
         return JsonResponse({"code": code,"info":"图片识别失败"})
-    return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":text})
+    return JsonResponse({"code": Code.IS_OK,"info":"图片识别成功","data":text})
 
 
 # 在线问答功能

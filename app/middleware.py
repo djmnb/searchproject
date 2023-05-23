@@ -30,8 +30,6 @@ class ExcptionMiddleware:
         try:
             match = resolve(request.path)
         except Exception as e:
-            print(e)
-            print("请求不存在")
             return JsonResponse({"code": Code.NOT_FOUND, "info": "请求不存在"})
         
         return self.get_response(request)
