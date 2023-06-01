@@ -74,13 +74,14 @@ def getUserInfo(request):
          "info":"获取成功",
          "data":{
             "email":user.email,
+            "password":user.password,
             "createTime":user.create_time,
             "loginTime":user.login_time,
             "loginIp":user.login_ip,
             "status":user.status,
             "tokens":user.tokens,
             "uploadCount":user.upload_count,
-            "isAdmin":user.is_admin
+            "hasPermission":user.has_permission
             }
         })
 

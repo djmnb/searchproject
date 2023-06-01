@@ -58,6 +58,8 @@ def getquestion(request):
     
     return JsonResponse({"code": Code.IS_OK, "info": "获取成功", "data": result,"total":total,"getType":getType})
 
+
+
 @check_is_login
 @csrf_exempt
 def uploadquestion(request):
@@ -71,6 +73,8 @@ def uploadquestion(request):
     title = data["title"]
     content = data["content"]
     question = Question.objects.create(title=title,content=content,user=user)
+    user.upload_count += 1
+    user.save()
     
     questionElasticsearch.add_question(question)
     return JsonResponse({"code": Code.IS_OK, "info": "上传成功"})
@@ -152,5 +156,7 @@ def getsearchhistory(request):
 
 
     return JsonResponse({"code": Code.IS_OK, "info": "获取成功", "data": result,"total":total})
+
+
     
     

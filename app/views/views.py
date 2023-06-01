@@ -20,7 +20,7 @@ import json
 
 
 # 添加自己的api_key
-openai.api_key = 
+openai.api_key = "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"
 
 
 @csrf_exempt
@@ -41,6 +41,25 @@ def uploadpic(request):
     if code != Code.IS_OK:
         return JsonResponse({"code": code,"info":"图片识别失败"})
     return JsonResponse({"code": Code.IS_OK,"info":"图片识别成功","data":text})
+
+
+
+@csrf_exempt
+@check_is_login
+def search(request):
+    if request.method != 'POST':
+        return HttpResponse("")
+
+    data = Data(json.loads(request.body))
+    searchText = data["searchText"]
+    questionNums = data["questionNums"]
+    result = questionElasticsearch.search_questions(searchText,questionNums)
+    
+    SearchHistory.objects.create(user=User.objects.get(email=request.session["email"]),title=searchText)
+
+    
+
+    return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":result})
 
 
 # 在线问答功能
@@ -72,25 +91,6 @@ def chat(request):
     logging.info(result)
     return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":{"result":result,"totalTokens":usage["total_tokens"],"allTokens":user.tokens}})
 
-@csrf_exempt
-@check_is_login
-def search(request):
-    if request.method != 'POST':
-        return HttpResponse("")
-
-    data = Data(json.loads(request.body))
-    searchText = data["searchText"]
-    questionNums = data["questionNums"]
-    result = questionElasticsearch.search_questions(searchText,questionNums)
-    
-    SearchHistory.objects.create(user=User.objects.get(email=request.session["email"]),title=searchText)
-
-    
-
-    return JsonResponse({"code": Code.IS_OK,"info":"搜索成功","data":result})
-
-
-    
     
 
 
