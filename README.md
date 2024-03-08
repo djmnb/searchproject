@@ -165,13 +165,13 @@ class GenerateQuesions:
 
 ### 创建管理员用户
 
-> 这一步也要启动那个搜索引擎elasticsearch的
+> 这一步也要启动那个搜索引擎elasticsearch
 
 ```shell
 python manage.py createsuperuser
 ```
 
-按照提示一步步输入信息创建用户, 当然,如果使用了我的数据库, 可以使用默认的 :
+按照提示一步步输入信息创建用户, 当然,如果使用了我的数据库, 可以使用 :
 
 ```
 账号: admin
