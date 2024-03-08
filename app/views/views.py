@@ -20,7 +20,7 @@ import json
 
 
 # 添加自己的api_key
-openai.api_key = "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"
+# openai.api_key = "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"
 
 
 @csrf_exempt
